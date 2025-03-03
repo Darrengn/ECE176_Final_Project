@@ -1,5 +1,4 @@
 import torch.nn as nn
-from utils.data_preprocess import get_cifar10_data
 
 class ResNet(nn.Module):
     def __init__(self, in_channel, out_channel, kernel, batch_norm=False, downsample=False, padding = 0):
@@ -30,3 +29,5 @@ class ResNet(nn.Module):
             out = self.conv2(out)
         x = self.residual(x)
         return self.relu(out+x)
+    
+
