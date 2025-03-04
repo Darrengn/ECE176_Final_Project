@@ -9,6 +9,23 @@ import torchvision.transforms as T
 
 from resnet_classifier import ResNet
 
+def check_accuracy(loader, model):
+    num_correct = 0
+    num_samples = 0
+    model.eval()  
+    with torch.no_grad():
+        for x, y in loader:
+            x = x.to(device=device, dtype=torch.float32)
+            y = y.to(device=device, dtype=torch.long)
+            scores = model(x)
+            _, preds = scores.max(1)
+            num_correct += (preds == y).sum()
+            num_samples += preds.size(0)
+        acc = float(num_correct) / num_samples
+        print('Got %d / %d correct (%.2f)' % (num_correct, num_samples, 100 * acc))
+    return acc
+
+
 NUM_TRAIN = 49000
 batch_size= 64
 if __name__ == '__main__':
@@ -70,8 +87,9 @@ if __name__ == '__main__':
             loss.backward()
             # Optimization step
             optimizer.step()
+        check_accuracy(loader_val, model)
         print(f'Epoch {e+1}, Loss: {loss.item():.4f}')
-torch.save(model.state_dict(), 'classifier.pth')
+    torch.save(model.state_dict(), 'classifier.pth')
 
 """
 model.load_state_dict(torch.load('model_state_dict.pth'))
