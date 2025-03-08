@@ -1,0 +1,79 @@
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
+from torch.utils.data import sampler
+
+import torchvision.datasets as dset
+import torchvision.transforms as T
+
+from resnet_classifier import ResNet
+
+
+def check_accuracy(loader, model):
+    num_correct = 0
+    num_samples = 0
+    model.eval()  
+    with torch.no_grad():
+        for x, y in loader:
+            x = x.to(device=device, dtype=torch.float32)
+            y = y.to(device=device, dtype=torch.long)
+            scores = model(x)
+            _, preds = scores.max(1)
+            num_correct += (preds == y).sum()
+            num_samples += preds.size(0)
+        acc = float(num_correct) / num_samples
+        print('Got %d / %d correct (%.2f)' % (num_correct, num_samples, 100 * acc))
+    return acc
+
+NUM_TRAIN = 49000
+batch_size= 64
+
+
+
+
+train_transform = transform = T.Compose([
+    T.ToTensor(),
+    T.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))
+])
+
+cifar10_train = dset.CIFAR10('./datasets/cifar10', train=True, download=True,
+    transform=train_transform)
+loader_train = DataLoader(cifar10_train, batch_size=batch_size, num_workers=2,
+    sampler=sampler.SubsetRandomSampler(range(NUM_TRAIN)))
+
+cifar10_val = dset.CIFAR10('./datasets/cifar10', train=True, download=True,
+    transform=transform)
+loader_val = DataLoader(cifar10_val, batch_size=batch_size, num_workers=2, 
+    sampler=sampler.SubsetRandomSampler(range(NUM_TRAIN, 50000)))
+
+cifar10_test = dset.CIFAR10('./datasets/cifar10', train=False, download=True, 
+    transform=transform)
+loader_test = DataLoader(cifar10_test, batch_size=batch_size, num_workers=2)
+
+if __name__ == '__main__':
+
+    if torch.cuda.is_available():
+        device = torch.device('cuda')
+    else:
+        device = torch.device('cpu')
+
+
+    model = nn.Sequential(
+            nn.Conv2d(3, 64, 7, stride = 2, padding = 3),
+            nn.ReLU(),
+            nn.MaxPool2d(3, stride=2, padding = 1),
+            ResNet(64,64,3,padding=1),
+            ResNet(64,128,3,padding=1),
+            ResNet(128,256,3,padding=1),
+            ResNet(256,512,3,padding=1,downsample=True),
+            nn.AdaptiveAvgPool2d(1),
+            nn.Flatten(),
+            nn.Linear(512, 10)
+        )
+
+    model.load_state_dict(torch.load('classifier.pth'))
+    model = model.to(device=device)
+    model.eval()
+    check_accuracy(loader_test, model)

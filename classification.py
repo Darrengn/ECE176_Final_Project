@@ -30,22 +30,22 @@ NUM_TRAIN = 49000
 batch_size= 64
 if __name__ == '__main__':
     train_transform = transform = T.Compose([
-                    T.ToTensor(),
-                    T.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))
-                ])
+        T.ToTensor(),
+        T.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))
+    ])
 
     cifar10_train = dset.CIFAR10('./datasets/cifar10', train=True, download=True,
-                                transform=train_transform)
+        transform=train_transform)
     loader_train = DataLoader(cifar10_train, batch_size=batch_size, num_workers=2,
-                            sampler=sampler.SubsetRandomSampler(range(NUM_TRAIN)))
+        sampler=sampler.SubsetRandomSampler(range(NUM_TRAIN)))
 
     cifar10_val = dset.CIFAR10('./datasets/cifar10', train=True, download=True,
-                            transform=transform)
+        transform=transform)
     loader_val = DataLoader(cifar10_val, batch_size=batch_size, num_workers=2, 
-                            sampler=sampler.SubsetRandomSampler(range(NUM_TRAIN, 50000)))
+        sampler=sampler.SubsetRandomSampler(range(NUM_TRAIN, 50000)))
 
     cifar10_test = dset.CIFAR10('./datasets/cifar10', train=False, download=True, 
-                                transform=transform)
+        transform=transform)
     loader_test = DataLoader(cifar10_test, batch_size=batch_size, num_workers=2)
 
 
@@ -91,7 +91,3 @@ if __name__ == '__main__':
         print(f'Epoch {e+1}, Loss: {loss.item():.4f}')
     torch.save(model.state_dict(), 'classifier.pth')
 
-"""
-model.load_state_dict(torch.load('model_state_dict.pth'))
-model.eval() # Set to evaluation mode if you are not training
-"""
