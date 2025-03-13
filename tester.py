@@ -8,6 +8,10 @@ from torch.utils.data import sampler
 import torchvision.datasets as dset
 import torchvision.transforms as T
 
+import kornia
+from PIL import Image
+import numpy as np
+
 from resnet_classifier import ResNet
 
 from ColorizationLoss import *
@@ -67,14 +71,12 @@ def show_img(loader, model):
             img = torch.zeros(b,3,h,w)
             img[:,0:1,:,:] = l
             img[:,1:3,:,:] = a_b
-            img[:,0,:,:] = img[:,0,:,:] * 100 
-            img[:,1,:,:] = img[:,1,:,:] * 255 - 128
-            img[:,2,:,:] = img[:,2,:,:] * 255 - 128
+            img[:,1:3,:,:] = img[:,1:3,:,:]*2-1
+            img = kornia.color.lab_to_rgb(img)
             for batch in range(img.shape[0]):
-                image = img[batch,:,:,:]
-                image = T.ToPILImage()(image)
-                image = image.convert("RGB") 
-                image.save(f"output/imageb:{batch}.png")
+                image = img[batch,:,:,:].view(h,w,3).cpu().numpy()
+                rgb = Image.fromarray((image*255).astype(np.uint8))
+                rgb.save(f"output/{batch}.png")
 
 NUM_TRAIN = 49000
 batch_size= 64
