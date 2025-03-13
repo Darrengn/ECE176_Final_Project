@@ -69,9 +69,8 @@ def show_img(loader, model):
             a_b = gamut[preds[:,:,:,0]]
             a_b = a_b.view(b, 2, h, w)
             img = torch.zeros(b,3,h,w)
-            img[:,0:1,:,:] = l
-            img[:,1:3,:,:] = a_b
-            img[:,1:3,:,:] = img[:,1:3,:,:]*2-1
+            img[:,0:1,:,:] = l*100
+            img[:,1:3,:,:] = a_b*255-128
             img = kornia.color.lab_to_rgb(img)
             for batch in range(img.shape[0]):
                 image = img[batch,:,:,:].view(h,w,3).cpu().numpy()

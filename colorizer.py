@@ -11,9 +11,9 @@ from ColorizationLoss import *
 
 class Preprocess:
     def __call__(self, img):
+        origimg = img
         img = img.convert("LAB")  
         img = T.functional.to_tensor(img)
-
         img[0] = img[0] / 100 
         img[1] = (img[1] + 128) / 255
         img[2] = (img[2] + 128) / 255
@@ -156,7 +156,6 @@ if __name__ == '__main__':
                      [80, -110], [80, -100], [80, -90], [80, -80], [80, -70], [80, -60], [80, -50], [80, -40], [80, -30], [80, -20], [80, -10], [80, 0], [80, 10], [80, 20], [80, 30], [80, 40], [80, 50], [80, 60], [80, 70], 
                      [90, -110], [90, -100], [90, -90], [90, -80], [90, -70], [90, -60], [90, -50], [90, -40], [90, -30], [90, -20], [90, -10], [90, 0], [90, 10], [90, 20], [90, 30], [90, 40], [90, 50], [90, 60], [90, 70], 
                      [100, -90], [100, -80], [100, -70], [100, -60], [100, -50], [100, -40], [100, -30], [100, -20], [100, -10], [100, 0]])
-
     gamut = (gamut+128)/255
     gamut = gamut.to(device=device)
     model = model.to(device=device)  # move the model parameters to CPU/GPU
@@ -178,7 +177,6 @@ if __name__ == '__main__':
             scores = model(l)
             optimizer.zero_grad()
             loss = loss_func(scores, x, weights)
-            print(loss)
             # Backward pass
             loss.backward()
             # Optimization step
