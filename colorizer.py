@@ -14,9 +14,6 @@ class Preprocess:
         origimg = img
         img = img.convert("LAB")  
         img = T.functional.to_tensor(img)
-        img[0] = img[0] / 100 
-        img[1] = (img[1] + 128) / 255
-        img[2] = (img[2] + 128) / 255
         return img
 
 def check_accuracy(loader, model):
@@ -165,6 +162,7 @@ if __name__ == '__main__':
         sampler=sampler.SubsetRandomSampler(range(NUM_TRAIN)))
     for images, labels in full_training:
         images = images.to(device=device)
+        print(prob(images, gamut))
         weights = rebalance(prob(images, gamut))
     for e in range(epochs):
         print(e)
