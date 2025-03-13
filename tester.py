@@ -15,6 +15,7 @@ import numpy as np
 from resnet_classifier import ResNet
 
 from ColorizationLoss import *
+from colorizer import Preprocess
 
 def check_accuracy(loader, model):
     num_correct = 0
@@ -83,24 +84,23 @@ batch_size= 64
 
 
 
-train_transform = transform = T.Compose([
+class_transform = T.Compose([
     T.ToTensor(),
     T.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))
 ])
 
-cifar10_train = dset.CIFAR10('./datasets/cifar10', train=True, download=True,
-    transform=train_transform)
-loader_train = DataLoader(cifar10_train, batch_size=batch_size, num_workers=2,
-    sampler=sampler.SubsetRandomSampler(range(NUM_TRAIN)))
+color_transform = T.Compose([
+    Preprocess()
+])
 
-cifar10_val = dset.CIFAR10('./datasets/cifar10', train=True, download=True,
-    transform=transform)
-loader_val = DataLoader(cifar10_val, batch_size=batch_size, num_workers=2, 
-    sampler=sampler.SubsetRandomSampler(range(NUM_TRAIN, 50000)))
 
-cifar10_test = dset.CIFAR10('./datasets/cifar10', train=False, download=True, 
-    transform=transform)
-loader_test = DataLoader(cifar10_test, batch_size=batch_size, num_workers=2)
+class_test = dset.CIFAR10('./datasets/cifar10', train=False, download=True, 
+    transform=class_transform)
+loader_class = DataLoader(class_test, batch_size=batch_size, num_workers=2)
+
+color_test = dset.CIFAR10('./datasets/cifar10', train=False, download=True, 
+    transform=color_transform)
+loader_color = DataLoader(color_test, batch_size=batch_size, num_workers=2)
 
 if __name__ == '__main__':
 
@@ -126,7 +126,7 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load('classifier.pth'))
     model = model.to(device=device)
     model.eval()
-    check_accuracy(loader_test, model)
+    check_accuracy(loader_class, model)
     modelColor = nn.Sequential(
         # conv1
         nn.Conv2d(1, 64, 3, padding = 1),
@@ -197,7 +197,6 @@ if __name__ == '__main__':
         nn.Softmax(1),
         nn.Upsample(scale_factor=4, mode='bilinear')
         )
-    
-    modelColor.load_state_dict(torch.load('colorizer.pth'))
     modelColor = modelColor.to(device=device)
-    show_img(loader_test, modelColor)
+    modelColor.load_state_dict(torch.load('colorizer.pth'))
+    show_img(loader_color, modelColor)

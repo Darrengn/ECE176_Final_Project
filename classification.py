@@ -9,6 +9,7 @@ import torchvision.transforms as T
 
 from resnet_classifier import ResNet
 
+
 def check_accuracy(loader, model):
     num_correct = 0
     num_samples = 0
